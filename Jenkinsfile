@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "gangireddy16/devops-static-site"
-        DOCKER_CREDENTIALS_ID = "dockerhub-creds"
+        DOCKER_IMAGE = "gangireddy16/devops-static-site:latest"
     }
 
     stages {
@@ -11,20 +10,22 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/gangireddy2004/devops-static-site.git'
+                url: 'https://github.com/gangireddy2004/devops-static-site.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                sh '''
+                docker build -t $DOCKER_IMAGE .
+                '''
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: "${DOCKER_CREDENTIALS_ID}",
+                    credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -37,7 +38,9 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh "docker push ${IMAGE_NAME}:latest"
+                sh '''
+                docker push $DOCKER_IMAGE
+                '''
             }
         }
 
@@ -50,11 +53,25 @@ pipeline {
                 '''
             }
         }
+
+        stage('Terraform Deploy') {
+            steps {
+                sh '''
+                cd terraform
+                terraform init
+                terraform apply -auto-approve
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo 'Full CI/CD completed'
+            echo 'Full DevOps pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Jenkins logs.'
         }
     }
 }
