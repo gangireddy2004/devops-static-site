@@ -2,11 +2,11 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "~> 3.6.0"
+      version = "3.6.2"
     }
   }
 }
 
 provider "docker" {
-  host = "npipe:////./pipe/docker_engine"
+  host = "unix:///var/run/docker.sock"
 }
