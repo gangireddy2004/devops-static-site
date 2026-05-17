@@ -44,7 +44,6 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl config set-cluster minikube --server=https://host.docker.internal:51048 --insecure-skip-tls-verify=true
                 kubectl config use-context minikube
                 kubectl apply -f k8s/deployment.yaml
                 kubectl apply -f k8s/service.yaml
@@ -55,11 +54,7 @@ pipeline {
 
     post {
         success {
-            echo 'Full CI/CD pipeline completed successfully'
-        }
-
-        failure {
-            echo 'Pipeline failed'
+            echo 'Full CI/CD completed'
         }
     }
 }
