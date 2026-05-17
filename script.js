@@ -1,3 +1,4 @@
 function showMessage() {
-    alert("DevOps Pipeline Working!");
+    document.getElementById("message").innerText =
+        "Pipeline deployment successful!";
 }
