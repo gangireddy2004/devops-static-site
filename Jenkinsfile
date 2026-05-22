@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "gangireddy16/devops-static-site:latest"
+        EC2_IP = "13.233.224.253"
     }
 
     stages {
@@ -44,30 +45,25 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to AWS EC2') {
             steps {
-                sh '''
-                kubectl config use-context minikube
-                kubectl apply -f k8s/deployment.yaml
-                kubectl apply -f k8s/service.yaml
-                '''
-            }
-        }
-
-        stage('Terraform Deploy') {
-            steps {
-                sh '''
-                cd terraform
-                terraform init
-                terraform apply -auto-approve
-                '''
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP "
+                    sudo docker pull $DOCKER_IMAGE &&
+                    sudo docker stop static-site || true &&
+                    sudo docker rm static-site || true &&
+                    sudo docker run -d --name static-site -p 80:80 $DOCKER_IMAGE
+                    "
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Full DevOps pipeline completed successfully!'
+            echo 'AWS EC2 deployment successful!'
         }
 
         failure {

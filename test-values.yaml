@@ -1,0 +1,9 @@
+﻿blackboxExporter:
+  enabled: true
+
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: 'test'
+        static_configs:
+          - targets: ['example.com']
